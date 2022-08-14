@@ -2,9 +2,16 @@
 
 [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fbeerjoa%2Fmonitoring-tick-stack&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
 
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![telegraf](images/logo/telegraf.png)
+![influxdb](images/logo/influxdb.png)
+![chronograf](images/logo/chronograf.png)
+![kapacitor](images/logo/kapacitor.png)
+
+
 This repository can build a TICK stack easily and quickly using Docker.
 
-![choronograf](images/choronograf.png)
+![tick-stack-grid](images/tick-stack-grid.jpeg)
 
 ## Features
 * [Telegraf](https://docs.influxdata.com/telegraf/v1.18/)
@@ -102,5 +109,4 @@ monitoring-tick-stack
 ```
 
 ## License
-
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
