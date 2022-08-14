@@ -1,0 +1,108 @@
+version: "3.8"
+
+networks:
+  default:
+    name: "${NETWORK_TICK}"
+    external: true
+
+volumes:
+  influxdb_data:
+    external: 
+      name: ${VOLUME_INFLUXDB_DATA}
+  kapacitor_data:
+    external: 
+      name: ${VOLUME_KAPACITOR_DATA}
+  chronograf_data:
+    external: 
+      name: ${VOLUME_CHRONOGRAF_DATA}
+
+services:
+  # influxdb
+  influxdb:
+    container_name: influxdb
+    image: "influxdb:${IMAGE_INFLUXDB}"
+    env_file: influxdb.env
+    ports:
+      - "8086:8086"
+    volumes:
+      - ${DEFAULT_CONTAINER_VOLUME_PATH}/influxdb/config/influxdb.conf:/etc/influxdb/influxdb.conf:ro
+      - "influxdb_data:/var/lib/influxdb"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://influxdb:8086/ping"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # telegraf
+  telegraf:
+    container_name: telegraf
+    image: "telegraf:${IMAGE_TELEGRAF}"
+    platform: linux/amd64
+    depends_on:
+      influxdb: 
+        condition: service_healthy
+    ports:
+      - "8125:8125/udp"
+    volumes:
+      - ${DEFAULT_CONTAINER_VOLUME_PATH}/telegraf/config/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+    restart: unless-stopped
+
+  # chronograf
+  chronograf:
+    container_name: chronograf
+    env_file: chronograf.env
+    image: "chronograf:${IMAGE_CHRONOGRAF}"
+    depends_on:
+      influxdb: 
+        condition: service_healthy
+    ports:
+      - "8888:8888"
+    volumes:
+      - chronograf_data:/var/lib/chronograf
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://chronograf:8888/ping"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # kapacitor
+  kapacitor:
+    container_name: kapacitor
+    image: "kapacitor:${IMAGE_KAPACITOR}"
+    depends_on:
+      influxdb: 
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+    volumes:
+      - ${DEFAULT_CONTAINER_VOLUME_PATH}/kapacitor/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf:ro
+      - "kapacitor_data:/var/lib/kapacitor"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+    restart: unless-stopped
